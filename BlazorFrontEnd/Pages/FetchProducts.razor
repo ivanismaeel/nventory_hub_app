@@ -1,0 +1,94 @@
+@page "/fetchproducts"
+@using System.Text.Json
+@using System.Net.Http.Json
+@using System.Text.Json.Serialization
+
+<h3>Product List</h3>
+
+<link href="css/FetchProducts.css" rel="stylesheet" />
+
+<ul class="product-list">
+   @if (products != null)
+    {
+        foreach (var product in products)
+        {
+            <li class="product-item">
+                <div class="product-name">@product.Name - $@product.Price</div>
+                <div class="product-details">
+                    <em>Stock:</em> @product.Stock<br />
+                    <em>Category:</em> @product.Category.Name
+                </div>
+            </li>
+        }
+    }
+    else
+    {
+        <li>Loading...</li>
+    }
+</ul>
+
+@code {
+    private Product[]? products;
+
+    // Inject HttpClient
+    [Inject]
+    public HttpClient? Http { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            if (Http != null)
+            {
+                var response = await Http.GetAsync("api/products");
+                response.EnsureSuccessStatusCode();
+                var json = await response.Content.ReadAsStringAsync();
+                Console.WriteLine("Received JSON: " + json); // Log the JSON response for debugging
+                
+                products = JsonSerializer.Deserialize<Product[]>(json, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+
+                if (products != null)
+                {
+                    foreach (var product in products)
+                    {
+                        Console.WriteLine($"Deserialized Product: Name={product.Name}, Price={product.Price}, Stock={product.Stock}, Category={product.Category.Name}");
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error fetching products: {ex.Message}");
+        }
+    }
+
+    public class Product
+    {
+        [JsonPropertyName("id")]
+        public int Id { get; set; }
+
+        [JsonPropertyName("name")]
+        public string Name { get; set; } = string.Empty;
+
+        [JsonPropertyName("price")]
+        public double Price { get; set; }
+
+        [JsonPropertyName("stock")]
+        public int Stock { get; set; }
+
+        [JsonPropertyName("category")]
+        public Category Category { get; set; } = new Category(); // Nested Category object
+    }
+
+    public class Category
+    {
+        [JsonPropertyName("id")]
+        public int Id { get; set; }
+
+        [JsonPropertyName("name")]
+        public string Name { get; set; } = string.Empty;
+    }
+}

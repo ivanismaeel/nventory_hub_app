@@ -1,0 +1,22 @@
+# .NET generated files
+bin/
+obj/
+
+# Visual Studio files
+.vscode/
+.vs/
+
+# User-specific files
+*.swp
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# ASP.NET Core
+appsettings.json
+appsettings.*.json
+
+# Dependency directories
+node_modules/
+wwwroot/
